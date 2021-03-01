@@ -1,0 +1,6 @@
+.git/*
+.idea/
+.idea/*
+.DS_Store
+*.yml
+excludes

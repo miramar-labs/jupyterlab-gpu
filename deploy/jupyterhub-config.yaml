@@ -1,0 +1,253 @@
+proxy:
+    secretToken: "????????????"
+    service:
+      labels:
+    type: NodePort
+    nodePorts:
+      http: 30080
+      https: 30443
+singleuser:
+  serviceAccountName: default
+  lifecycleHooks:
+  postStart:
+    exec:
+      command: ['sh', '-c', 'if [ -f "/env-init.sh" ]; then sh "/env-init.sh"; fi']
+  defaultUrl: "/lab"
+  extraEnv:
+    EDITOR: "vim"
+    GRANT_SUDO: "1"
+  storage:
+    dynamic:
+      storageClass: nfs-client
+cull:
+  enabled: false
+auth:
+  type: google
+  google:
+    clientId: "???????????"
+    clientSecret: "????????????"
+    callbackUrl: "https://aaroncody.com/hub/oauth_callback"
+    hostedDomain: ["aaroncody.com"]
+    loginService: "Aaron Cody's AI Lab"
+hub:
+  labels:
+  extraEnv:
+    JUPYTER_ENABLE_LAB: "1"
+    GRANT_SUDO: "1"
+  extraConfig:
+    00-jlab: |
+        c.Spawner.default_url = "/lab"
+    02-vols: |
+        c.KubeSpawner.volume_mounts = [
+            {
+                'name':'shm-volume',
+                'mountPath':'/dev/shm'
+            }
+        ]
+    03-mounts: |
+        c.KubeSpawner.volumes = [
+            {
+            'name':'shm-volume',
+            'emptyDir': {
+                'medium': 'Memory'
+                }
+            }
+        ]
+    04-docker: |
+        c.KubeSpawner.image_pull_policy = 'IfNotPresent'
+    05-profiles: |
+        c.KubeSpawner.profile_list = [
+            {
+                'display_name': 'PyTorch Notebook: CPU + GPU + fast.ai',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/pytorch-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'PyTorch Notebook: CPU + fast.ai',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/pytorch-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Tensorflow TFX Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/tfx-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Tensorflow TFX Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/tfx-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Datascience Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/datascience-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Datascience Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/datascience-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'R Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/r-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'R Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/r-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Q Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/q-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Q Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/q-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Haskell Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/haskell-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Haskell Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/haskell-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'C++ Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/cpp-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'C++ Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/cpp-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Spark Notebook: CPU + GPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/gpu/all-spark-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'extra_resource_guarantees': {"nvidia.com/gpu": "1"},
+                    'extra_resource_limits': {"nvidia.com/gpu": "1"},
+                    'user_storage_capacity': '16Gi'
+                }
+            },
+            {
+                'display_name': 'Spark Notebook: CPU',
+                'kubespawner_override': {
+                    'singleuser_image_spec': 'registry.lan.aaroncody.com:5000/cpu/all-spark-notebook:v1.3',
+                    'cpu_guarantee': 2,
+                    'mem_guarantee': '2G',
+                    'cpu_limit': 4,
+                    'mem_limit': '16G',
+                    'user_storage_capacity': '16Gi'
+                }
+            }
+
+        ]

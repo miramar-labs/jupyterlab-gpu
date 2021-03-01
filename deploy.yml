@@ -1,0 +1,61 @@
+# https://github.com/jupyterhub/zero-to-jupyterhub-k8s/releases
+# https://jupyterhub.github.io/helm-chart/
+
+################################################################################################################
+## install jupyterhub chart
+
+- name: '[k8s] Installing JupyterHub'
+  hosts: localhost
+  tasks:
+
+    - name: '[JHUB] create deploy folder'
+      file: path=deploy state=directory
+
+    - name: "[JHUB] installing JupyterHub - pt I"
+      command: helm2 repo add jupyterhub https://jupyterhub.github.io/helm-chart/
+
+    - name: "[JHUB] installing JupyterHub - pt II"
+      command: helm2 repo update
+
+    - name:  '[JHUB] push updated Helm config to JupyterHub'
+      template: src=templates/jupyterhub-config.yaml.j2 dest=deploy/jupyterhub-config.yaml
+
+    - name: "[JHUB] installing JupyterHub - pt IV"
+      command: helm2 install jupyterhub/jupyterhub                  \
+                            --version={{_ver_jhub}}                       \
+                            --name={{_jhub_release_name}}                 \
+                            --namespace={{_jhub_release_namespace}}                   \
+                            --timeout={{_jhub_timeout}}                   \
+                            -f deploy/jupyterhub-config.yaml
+
+    - name: '[JHUB] waiting 1m for Jupyter to come up'
+      pause:
+        minutes: 1
+
+################################################################################################################
+## Clipper/JHub RBAC
+
+    - name: '[JHUB] open up jupyterhub default SA'
+      command: >
+        kubectl create rolebinding myJLabAdminRoleBinding
+          --clusterrole=admin
+          --serviceaccount={{_jhub_release_namespace}}:default
+          --namespace={{_jhub_release_namespace}}
+      when: false
+
+    - name: '[JHUB] generate clipper-rbac spec'
+      template: src=templates/clipper-rbac.yml.j2 dest=deploy/clipper-rbac.yml
+      when: false
+
+    - name: '[JHUB] apply clipper RBAC'
+      ignore_errors: yes
+      command: kubectl create -f deploy/clipper-rbac.yml
+      when: false
+
+################################################################################################################
+# HAPROXY
+- import_playbook: ../hap/update-hap.yml
+
+
+
+

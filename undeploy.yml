@@ -1,0 +1,29 @@
+# https://github.com/jupyterhub/zero-to-jupyterhub-k8s/releases
+
+- name: '[JHUB] Un-Deploy JupyterHub'
+  hosts: localhost
+  vars:
+  tasks:
+
+    - name: "[JHUB] un-deploying JupyterHub"
+      command: helm2 delete {{_jhub_release_name}} --purge
+      ignore_errors: true
+
+    - name: '[JHUB] delete clipper RBAC'
+      command: kubectl delete rolebinding myJLabAdminRoleBinding --namespace={{_jhub_release_namespace}}
+      ignore_errors: true
+      when: false
+
+    - name: '[JHUB] delete clipper RBAC'
+      command: kubectl delete -f deploy/clipper-rbac.yml
+      ignore_errors: true
+      when: false
+
+    - name: '[JHUB] remove deploy folder'
+      file: path=deploy/ state=absent
+
+    - name: '[JHUB] waiting 1m for JHub to terminate'
+      pause:
+        minutes: 1
+
+
